@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAll, create, update } from "../services/category.service";
+import { getAll, create, update, remove } from "../services/category.service";
 import AddButton from "../components/addButton";
 import TableCategoryTag from "../components/tableCategoryTag";
 import Modal from "../components/modal";
@@ -64,11 +64,25 @@ function Category() {
     setCategoriaEditando(null);
   };
 
+  const handleEliminar = async (id) => {
+    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta categoría?");
+
+    if (confirmar) {
+      try {
+        await remove(id);
+        const categoriasRestantes = categorias.filter((cat) => cat.id !== id);
+        setCategorias(categoriasRestantes);
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+      }
+    }
+  };
+
   return (
     <>
       <AddButton texto={texto} onClick={abrirModalCrear} />
 
-      <TableCategoryTag data={categorias} onEdit={abrirModalEditar} />
+      <TableCategoryTag data={categorias} onEdit={abrirModalEditar} onDelete={handleEliminar} />
 
       <Modal
         isOpen={isModalOpen}
