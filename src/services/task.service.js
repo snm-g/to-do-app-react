@@ -1,4 +1,4 @@
-const API_URL = 'https://tu-api-de-ejemplo.com/api/tasks';
+const API_URL = 'http://127.0.0.1:8000/api/tasks';
 
 export const create = async (nuevaTarea) => {
   const respuesta = await fetch(API_URL, {
@@ -28,4 +28,5 @@ export const remove = async (id) => {
   });
   return respuesta.ok; 
 };
+
 
