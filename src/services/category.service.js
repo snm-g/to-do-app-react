@@ -16,6 +16,15 @@ export const create = async (nuevaCategoria) => {
   return await respuesta.json();
 };
 
-export const update = async (id, categoriaActualizada) => {};
+export const update = async (id, categoriaActualizada) => {
+  const respuesta = await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(categoriaActualizada),
+  });
+  return await respuesta.json();
+};
 
 export const remove = async (id) => {};
