@@ -1,4 +1,4 @@
-const API_URL = 'https://tu-api-de-ejemplo.com/api/tareas';
+const API_URL = 'https://tu-api-de-ejemplo.com/api/tasks';
 
 export const create = async (nuevaTarea) => {
   const respuesta = await fetch(API_URL, {
@@ -28,3 +28,4 @@ export const remove = async (id) => {
   });
   return respuesta.ok; 
 };
+
