@@ -27,4 +27,9 @@ export const update = async (id, categoriaActualizada) => {
   return await respuesta.json();
 };
 
-export const remove = async (id) => {};
+export const remove = async (id) => {
+  const respuesta = await fetch(`${API_URL}/${id}`, {
+    method: "DELETE",
+  });
+  return respuesta.ok;
+};
