@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAll as getAllTasks, create as createTask } from "../services/task.service";
+import { getAll as getAllTasks, create as createTask, update as updateTask } from "../services/task.service";
 import { getAll as getAllCategories } from "../services/category.service";
 import { getAll as getAllTags } from "../services/tag.service";
 
@@ -15,6 +15,8 @@ function Task() {
   const [etiquetasLista, setEtiquetasLista] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [tareaEditando, setTareaEditando] = useState(null);
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -40,11 +42,25 @@ function Task() {
   }, []);
 
   const abrirModalCrear = () => {
+    setTareaEditando(null);
     setTitulo("");
     setDescripcion("");
     setCategoriaId("");
     setEtiquetasSeleccionadas([]);
     setIsCompleted(false);
+    setIsModalOpen(true);
+  };
+
+  const abrirModalEditar = (tarea) => {
+    setTareaEditando(tarea);
+    setTitulo(tarea.title);
+    setDescripcion(tarea.description || "");
+    setCategoriaId(tarea.category_id);
+
+    setEtiquetasSeleccionadas(tarea.tags ? tarea.tags.map((t) => t.id) : []);
+
+    setIsCompleted(tarea.is_completed === 1 || tarea.is_completed === true);
+
     setIsModalOpen(true);
   };
 
@@ -70,14 +86,20 @@ function Task() {
         is_completed: isCompleted ? 1 : 0,
       };
 
-      const nuevaTarea = await createTask(payload);
+      if (tareaEditando) {
+        const respuesta = await updateTask(tareaEditando.id, payload);
+        const tareaActualizada = respuesta.data ? respuesta.data : respuesta;
 
-      const tareaInsertar = nuevaTarea.data ? nuevaTarea.data : nuevaTarea;
-      setTareas([...tareas, tareaInsertar]);
+        setTareas(tareas.map((t) => (t.id === tareaEditando.id ? tareaActualizada : t)));
+      } else {
+        const nuevaTarea = await createTask(payload);
+        const tareaInsertar = nuevaTarea.data ? nuevaTarea.data : nuevaTarea;
+        setTareas([...tareas, tareaInsertar]);
+      }
 
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Error al crear la tarea:", error);
+      console.error("Error al guardar la tarea:", error);
     }
   };
 
@@ -93,6 +115,7 @@ function Task() {
               <th>CATEGORÍA</th>
               <th>ETIQUETAS</th>
               <th>ESTADO</th>
+              <th>ACCIONES</th>
             </tr>
           </thead>
           <tbody>
@@ -114,13 +137,28 @@ function Task() {
                     <span className="status-pending">Pendiente</span>
                   )}
                 </td>
+                <td>
+                  <button className="button-view" onClick={() => console.log("Próximamente: Ver")}>
+                    Ver
+                  </button>
+                  <button className="button-edit" onClick={() => abrirModalEditar(item)}>
+                    Editar
+                  </button>
+                  <button className="button-delete" onClick={() => console.log("Próximamente: Eliminar")}>
+                    Eliminar
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} texto={`NUEVA ${texto.toUpperCase()}`}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        texto={tareaEditando ? `EDITAR ${texto.toUpperCase()}` : `NUEVA ${texto.toUpperCase()}`}
+      >
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>TÍTULO *</label>
@@ -212,7 +250,7 @@ function Task() {
               Cancelar
             </button>
             <button type="submit" className="button-save">
-              Guardar
+              {tareaEditando ? "Actualizar" : "Guardar"}
             </button>
           </div>
         </form>
