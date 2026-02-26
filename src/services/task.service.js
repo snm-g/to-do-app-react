@@ -16,7 +16,16 @@ export const create = async (nuevaTarea) => {
   return await respuesta.json();
 };
 
-export const update = async (id, tareaActualizada) => {};
+export const update = async (id, tareaActualizada) => {
+  const respuesta = await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(tareaActualizada),
+  });
+  return await respuesta.json();
+};
 
 export const remove = async (id) => {};
 
