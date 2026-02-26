@@ -122,9 +122,11 @@ function Category() {
             <button type="button" className="button-cancel" onClick={cerrarModal}>
               {isReadOnly ? "Cerrar" : "Cancelar"}
             </button>
-            <button type="submit" className="button-save">
-              {categoriaEditando ? "Actualizar" : "Guardar"}
-            </button>
+            {!isReadOnly && (
+              <button type="submit" className="button-save">
+                {categoriaEditando ? "Actualizar" : "Guardar"}
+              </button>
+            )}
           </div>
         </form>
       </Modal>
