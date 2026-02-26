@@ -1,6 +1,6 @@
 import "../stylesheets/tableCategoryTag.css";
 
-function TableCategoryTag({ data, onEdit, onDelete }) {
+function TableCategoryTag({ data, onEdit, onDelete, onView }) {
   return (
     <div className="table-div">
       <table>
@@ -18,6 +18,9 @@ function TableCategoryTag({ data, onEdit, onDelete }) {
               <td>{item.id}</td>
               <td>{item.name}</td>
               <td>
+                <button className="button-view" onClick={() => onView(item)}>
+                  Ver
+                </button>
                 <button className="button-edit" onClick={() => onEdit(item)}>
                   Editar
                 </button>

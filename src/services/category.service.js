@@ -33,3 +33,8 @@ export const remove = async (id) => {
   });
   return respuesta.ok;
 };
+
+export const getOne = async (id) => {
+  const respuesta = await fetch(`${API_URL}/${id}`);
+  return await respuesta.json();
+};

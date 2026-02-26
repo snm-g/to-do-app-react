@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAll, create, update, remove } from "../services/category.service";
+import { getAll, create, update, remove, getOne } from "../services/category.service";
 import AddButton from "../components/addButton";
 import TableCategoryTag from "../components/tableCategoryTag";
 import Modal from "../components/modal";
@@ -12,6 +12,7 @@ function Category() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [categoriaEditando, setCategoriaEditando] = useState(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   // EFECTOS
   useEffect(() => {
@@ -28,12 +29,26 @@ function Category() {
   const abrirModalCrear = () => {
     setCategoriaEditando(null);
     setNombre("");
+    setIsReadOnly(false);
     setIsModalOpen(true);
   };
   const abrirModalEditar = (categoriaSeleccionada) => {
     setCategoriaEditando(categoriaSeleccionada);
     setNombre(categoriaSeleccionada.name);
+    setIsReadOnly(false);
     setIsModalOpen(true);
+  };
+  const abrirModalVer = async (categoriaSeleccionada) => {
+    try {
+      const respuesta = await getOne(categoriaSeleccionada.id);
+      const categoriaDetalle = respuesta.data ? respuesta.data : respuesta;
+      setCategoriaEditando(categoriaDetalle);
+      setNombre(categoriaDetalle.name);
+      setIsReadOnly(true);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error al traer el detalle de la categoría:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -62,6 +77,7 @@ function Category() {
     setIsModalOpen(false);
     setNombre("");
     setCategoriaEditando(null);
+    setIsReadOnly(false);
   };
 
   const handleEliminar = async (id) => {
@@ -78,17 +94,17 @@ function Category() {
     }
   };
 
+  let tituloModal = `NUEVA ${texto.toUpperCase()}`;
+  if (categoriaEditando) {
+    tituloModal = isReadOnly ? `VER ${texto.toUpperCase()}` : `EDITAR ${texto.toUpperCase()}`;
+  }
   return (
     <>
       <AddButton texto={texto} onClick={abrirModalCrear} />
 
-      <TableCategoryTag data={categorias} onEdit={abrirModalEditar} onDelete={handleEliminar} />
+      <TableCategoryTag data={categorias} onEdit={abrirModalEditar} onDelete={handleEliminar} onView={abrirModalVer} />
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={cerrarModal}
-        texto={categoriaEditando ? `EDITAR ${texto.toUpperCase()}` : `NUEVA ${texto.toUpperCase()}`}
-      >
+      <Modal isOpen={isModalOpen} onClose={cerrarModal} texto={tituloModal}>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>NOMBRE</label>
@@ -99,11 +115,12 @@ function Category() {
               required
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
+              disabled={isReadOnly}
             />
           </div>
           <div className="modal-footer">
             <button type="button" className="button-cancel" onClick={cerrarModal}>
-              Cancelar
+              {isReadOnly ? "Cerrar" : "Cancelar"}
             </button>
             <button type="submit" className="button-save">
               {categoriaEditando ? "Actualizar" : "Guardar"}

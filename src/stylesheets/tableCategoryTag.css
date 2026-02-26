@@ -25,6 +25,12 @@
   font-family: sans-serif;
 }
 
+.button-view {
+  background-color: #3b82f6;
+}
+.button-view:hover {
+  background-color: #2563eb;
+}
 .button-edit {
   background-color: #f59e0b;
 }
@@ -38,7 +44,8 @@
   background-color: #dc2626;
 }
 .button-edit,
-.button-delete {
+.button-delete,
+.button-view {
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
