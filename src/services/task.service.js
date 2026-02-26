@@ -16,3 +16,8 @@ export const update = async (id, tareaActualizada) => {
 export const remove = async (id) => {
 
 };
+
+export const getOne = async (id) => {
+  const respuesta = await fetch(`${API_URL}/${id}`);
+  return await respuesta.json();
+};
