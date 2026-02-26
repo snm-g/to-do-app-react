@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { getAll as getAllTasks, create as createTask, update as updateTask } from "../services/task.service";
+import {
+  getAll as getAllTasks,
+  create as createTask,
+  update as updateTask,
+  getOne as getTask,
+} from "../services/task.service";
 import { getAll as getAllCategories } from "../services/category.service";
 import { getAll as getAllTags } from "../services/tag.service";
 
@@ -15,7 +20,7 @@ function Task() {
   const [etiquetasLista, setEtiquetasLista] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [tareaEditando, setTareaEditando] = useState(null);
 
   const [titulo, setTitulo] = useState("");
@@ -48,6 +53,7 @@ function Task() {
     setCategoriaId("");
     setEtiquetasSeleccionadas([]);
     setIsCompleted(false);
+    setIsReadOnly(false);
     setIsModalOpen(true);
   };
 
@@ -56,12 +62,29 @@ function Task() {
     setTitulo(tarea.title);
     setDescripcion(tarea.description || "");
     setCategoriaId(tarea.category_id);
-
     setEtiquetasSeleccionadas(tarea.tags ? tarea.tags.map((t) => t.id) : []);
-
     setIsCompleted(tarea.is_completed === 1 || tarea.is_completed === true);
-
+    setIsReadOnly(false);
     setIsModalOpen(true);
+  };
+
+  const abrirModalVer = async (tareaSeleccionada) => {
+    try {
+      const respuesta = await getTask(tareaSeleccionada.id);
+      const tareaDetalle = respuesta.data ? respuesta.data : respuesta;
+
+      setTareaEditando(tareaDetalle);
+      setTitulo(tareaDetalle.title);
+      setDescripcion(tareaDetalle.description || "");
+      setCategoriaId(tareaDetalle.category_id);
+      setEtiquetasSeleccionadas(tareaDetalle.tags ? tareaDetalle.tags.map((t) => t.id) : []);
+      setIsCompleted(tareaDetalle.is_completed === 1 || tareaDetalle.is_completed === true);
+
+      setIsReadOnly(true);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error al traer el detalle de la tarea:", error);
+    }
   };
 
   const handleAgregarEtiqueta = (e) => {
@@ -89,7 +112,6 @@ function Task() {
       if (tareaEditando) {
         const respuesta = await updateTask(tareaEditando.id, payload);
         const tareaActualizada = respuesta.data ? respuesta.data : respuesta;
-
         setTareas(tareas.map((t) => (t.id === tareaEditando.id ? tareaActualizada : t)));
       } else {
         const nuevaTarea = await createTask(payload);
@@ -102,6 +124,11 @@ function Task() {
       console.error("Error al guardar la tarea:", error);
     }
   };
+
+  let tituloModal = `NUEVA ${texto.toUpperCase()}`;
+  if (tareaEditando) {
+    tituloModal = isReadOnly ? `VER ${texto.toUpperCase()}` : `EDITAR ${texto.toUpperCase()}`;
+  }
 
   return (
     <>
@@ -138,7 +165,7 @@ function Task() {
                   )}
                 </td>
                 <td>
-                  <button className="button-view" onClick={() => console.log("Próximamente: Ver")}>
+                  <button className="button-view" onClick={() => abrirModalVer(item)}>
                     Ver
                   </button>
                   <button className="button-edit" onClick={() => abrirModalEditar(item)}>
@@ -154,11 +181,7 @@ function Task() {
         </table>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        texto={tareaEditando ? `EDITAR ${texto.toUpperCase()}` : `NUEVA ${texto.toUpperCase()}`}
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} texto={tituloModal}>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>TÍTULO *</label>
@@ -168,6 +191,7 @@ function Task() {
               required
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
+              disabled={isReadOnly}
             />
           </div>
 
@@ -178,6 +202,7 @@ function Task() {
               rows="3"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
+              disabled={isReadOnly}
             ></textarea>
           </div>
 
@@ -188,6 +213,7 @@ function Task() {
               required
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
+              disabled={isReadOnly}
             >
               <option value="">Seleccione una categoría...</option>
               {categoriasLista.map((cat) => (
@@ -200,18 +226,20 @@ function Task() {
 
           <div className="form-group">
             <label>ETIQUETAS</label>
-            <select className="form-input" onChange={handleAgregarEtiqueta} value="">
-              <option value="" disabled>
-                Seleccione una etiqueta para agregar...
-              </option>
-              {etiquetasLista
-                .filter((tag) => !etiquetasSeleccionadas.includes(tag.id))
-                .map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-            </select>
+            {!isReadOnly && (
+              <select className="form-input" onChange={handleAgregarEtiqueta} value="">
+                <option value="" disabled>
+                  Seleccione una etiqueta para agregar...
+                </option>
+                {etiquetasLista
+                  .filter((tag) => !etiquetasSeleccionadas.includes(tag.id))
+                  .map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+              </select>
+            )}
 
             <div className="tags-container">
               {etiquetasSeleccionadas.length === 0 && (
@@ -224,9 +252,11 @@ function Task() {
                 return (
                   <span key={tagId} className="tag-badge">
                     {tagCompleta.name}
-                    <button type="button" onClick={() => handleQuitarEtiqueta(tagId)} className="tag-remove-button">
-                      &times;
-                    </button>
+                    {!isReadOnly && (
+                      <button type="button" onClick={() => handleQuitarEtiqueta(tagId)} className="tag-remove-button">
+                        &times;
+                      </button>
+                    )}
                   </span>
                 );
               })}
@@ -240,6 +270,7 @@ function Task() {
                 checked={isCompleted}
                 onChange={(e) => setIsCompleted(e.target.checked)}
                 className="checkbox-input"
+                disabled={isReadOnly}
               />
               Marcar como Completada
             </label>
@@ -247,11 +278,13 @@ function Task() {
 
           <div className="modal-footer">
             <button type="button" className="button-cancel" onClick={() => setIsModalOpen(false)}>
-              Cancelar
+              {isReadOnly ? "Cerrar" : "Cancelar"}
             </button>
-            <button type="submit" className="button-save">
-              {tareaEditando ? "Actualizar" : "Guardar"}
-            </button>
+            {!isReadOnly && (
+              <button type="submit" className="button-save">
+                {tareaEditando ? "Actualizar" : "Guardar"}
+              </button>
+            )}
           </div>
         </form>
       </Modal>
