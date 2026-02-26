@@ -4,6 +4,7 @@ import {
   create as createTask,
   update as updateTask,
   getOne as getTask,
+  remove as removeTask,
 } from "../services/task.service";
 import { getAll as getAllCategories } from "../services/category.service";
 import { getAll as getAllTags } from "../services/tag.service";
@@ -84,6 +85,19 @@ function Task() {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error al traer el detalle de la tarea:", error);
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta tarea?");
+    if (confirmar) {
+      try {
+        await removeTask(id);
+
+        setTareas(tareas.filter((t) => t.id !== id));
+      } catch (error) {
+        console.error("Error al eliminar la tarea:", error);
+      }
     }
   };
 
@@ -171,7 +185,7 @@ function Task() {
                   <button className="button-edit" onClick={() => abrirModalEditar(item)}>
                     Editar
                   </button>
-                  <button className="button-delete" onClick={() => console.log("Próximamente: Eliminar")}>
+                  <button className="button-delete" onClick={() => handleEliminar(item.id)}>
                     Eliminar
                   </button>
                 </td>
