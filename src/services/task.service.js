@@ -5,8 +5,19 @@ export const getAll = async () => {
   return await respuesta.json();
 };
 
-export const create = async (nuevaTarea) => {};
+export const create = async (nuevaTarea) => {
+  const respuesta = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(nuevaTarea),
+  });
+  return await respuesta.json();
+};
 
 export const update = async (id, tareaActualizada) => {};
 
 export const remove = async (id) => {};
+
+export const getOne = async (id) => {};
