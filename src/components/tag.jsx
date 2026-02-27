@@ -3,7 +3,6 @@ import { getAll, create, update, remove, getOne } from "../services/tag.service"
 import AddButton from "../components/addButton";
 import TableCategoryTag from "../components/tableCategoryTag";
 import Modal from "../components/modal";
-
 function Tag() {
   const texto = "etiqueta";
 
@@ -13,18 +12,19 @@ function Tag() {
   const [nombre, setNombre] = useState("");
   const [etiquetaEditando, setEtiquetaEditando] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
   // EFECTOS
   useEffect(() => {
     const cargarEtiquetas = async () => {
-      const datos = await getAll().catch((error) => {
-        console.error("Error al traer las etiquetas:", error);
-        return [];
-      });
-      setEtiquetas(datos);
+      const datos = await getAll(paginaActual);
+
+      setEtiquetas(datos?.data || datos || []);
+      if (datos?.last_page) setTotalPaginas(datos.last_page);
     };
     cargarEtiquetas();
-  }, []);
+  }, [paginaActual]);
 
   const abrirModalCrear = () => {
     setEtiquetaEditando(null);
@@ -100,7 +100,15 @@ function Tag() {
     <>
       <AddButton texto={texto} onClick={abrirModalCrear} />
 
-      <TableCategoryTag data={etiquetas} onEdit={abrirModalEditar} onDelete={handleEliminar} onView={abrirModalVer} />
+      <TableCategoryTag
+        data={etiquetas}
+        onEdit={abrirModalEditar}
+        onDelete={handleEliminar}
+        onView={abrirModalVer}
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        setPaginaActual={setPaginaActual}
+      />
 
       <Modal isOpen={isModalOpen} onClose={cerrarModal} texto={tituloModal}>
         <form onSubmit={handleSubmit}>

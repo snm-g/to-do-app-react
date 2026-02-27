@@ -1,7 +1,6 @@
-import { fetchAPI } from "./api"; // Importamos el interceptor
-
-export const getAll = async () => {
-  return await fetchAPI("/categories");
+import { fetchAPI } from "./api";
+export const getAll = async (page = 1) => {
+  return await fetchAPI(`/categories?page=${page}`);
 };
 
 export const create = async (nuevaCategoria) => {

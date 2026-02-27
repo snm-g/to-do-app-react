@@ -11,6 +11,7 @@ import { getAll as getAllTags } from "../services/tag.service";
 
 import AddButton from "../components/addButton";
 import Modal from "../components/modal";
+import Paginacion from "../components/paginacion";
 import "../stylesheets/Task.css";
 
 function Task() {
@@ -30,18 +31,23 @@ function Task() {
   const [etiquetasSeleccionadas, setEtiquetasSeleccionadas] = useState([]);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+
   useEffect(() => {
     const cargarTodo = async () => {
-      const tareasData = await getAllTasks();
+      const tareasData = await getAllTasks(paginaActual);
       const categoriasData = await getAllCategories();
       const etiquetasData = await getAllTags();
 
       setTareas(tareasData?.data || tareasData || []);
       setCategoriasLista(categoriasData?.data || categoriasData || []);
       setEtiquetasLista(etiquetasData?.data || etiquetasData || []);
+
+      if (tareasData?.last_page) setTotalPaginas(tareasData.last_page);
     };
     cargarTodo();
-  }, []);
+  }, [paginaActual]);
 
   const abrirModalCrear = () => {
     setTareaEditando(null);
@@ -189,6 +195,7 @@ function Task() {
             ))}
           </tbody>
         </table>
+        <Paginacion paginaActual={paginaActual} totalPaginas={totalPaginas} cambiarPagina={setPaginaActual} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} texto={tituloModal}>

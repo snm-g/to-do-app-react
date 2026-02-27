@@ -1,7 +1,7 @@
 import { fetchAPI } from "./api";
 
-export const getAll = async () => {
-  return await fetchAPI("/tasks");
+export const getAll = async (page = 1) => {
+  return await fetchAPI(`/tasks?page=${page}`);
 };
 
 export const create = async (nuevaTarea) => {

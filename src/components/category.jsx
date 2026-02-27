@@ -3,7 +3,6 @@ import { getAll, create, update, remove, getOne } from "../services/category.ser
 import AddButton from "../components/addButton";
 import TableCategoryTag from "../components/tableCategoryTag";
 import Modal from "../components/modal";
-
 function Category() {
   const texto = "categoría";
 
@@ -13,18 +12,20 @@ function Category() {
   const [nombre, setNombre] = useState("");
   const [categoriaEditando, setCategoriaEditando] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
   // EFECTOS
   useEffect(() => {
     const cargarCategorias = async () => {
-      const datos = await getAll().catch((error) => {
-        console.error("Error al traer las categorías:", error);
-        return [];
-      });
-      setCategorias(datos);
+      const datos = await getAll(paginaActual);
+
+      setCategorias(datos?.data || datos || []);
+
+      if (datos?.last_page) setTotalPaginas(datos.last_page);
     };
     cargarCategorias();
-  }, []);
+  }, [paginaActual]);
 
   const abrirModalCrear = () => {
     setCategoriaEditando(null);
@@ -102,7 +103,15 @@ function Category() {
     <>
       <AddButton texto={texto} onClick={abrirModalCrear} />
 
-      <TableCategoryTag data={categorias} onEdit={abrirModalEditar} onDelete={handleEliminar} onView={abrirModalVer} />
+      <TableCategoryTag
+        data={categorias}
+        onEdit={abrirModalEditar}
+        onDelete={handleEliminar}
+        onView={abrirModalVer}
+        paginaActual={paginaActual}
+        totalPaginas={totalPaginas}
+        setPaginaActual={setPaginaActual}
+      />
 
       <Modal isOpen={isModalOpen} onClose={cerrarModal} texto={tituloModal}>
         <form onSubmit={handleSubmit}>

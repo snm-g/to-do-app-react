@@ -1,7 +1,7 @@
-import { fetchAPI } from "./api"; // Importamos tu interceptor mágico
+import { fetchAPI } from "./api";
 
-export const getAll = async () => {
-  return await fetchAPI("/tags");
+export const getAll = async (page = 1) => {
+  return await fetchAPI(`/tags?page=${page}`);
 };
 
 export const create = async (nuevaEtiqueta) => {

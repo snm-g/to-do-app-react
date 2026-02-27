@@ -1,6 +1,7 @@
 import "../stylesheets/tableCategoryTag.css";
+import Paginacion from "../components/paginacion";
 
-function TableCategoryTag({ data, onEdit, onDelete, onView }) {
+function TableCategoryTag({ data, onEdit, onDelete, onView, paginaActual, totalPaginas, setPaginaActual }) {
   return (
     <div className="table-div">
       <table>
@@ -32,6 +33,7 @@ function TableCategoryTag({ data, onEdit, onDelete, onView }) {
           ))}
         </tbody>
       </table>
+      <Paginacion paginaActual={paginaActual} totalPaginas={totalPaginas} cambiarPagina={setPaginaActual} />
     </div>
   );
 }
