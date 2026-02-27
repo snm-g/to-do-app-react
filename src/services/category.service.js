@@ -1,40 +1,30 @@
-const API_URL = "http://127.0.0.1:8000/api/categories";
+import { fetchAPI } from "./api"; // Importamos el interceptor
 
 export const getAll = async () => {
-  const respuesta = await fetch(API_URL);
-  return await respuesta.json();
+  return await fetchAPI("/categories");
 };
 
 export const create = async (nuevaCategoria) => {
-  const respuesta = await fetch(API_URL, {
+  return await fetchAPI("/categories", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(nuevaCategoria),
   });
-  return await respuesta.json();
 };
 
 export const update = async (id, categoriaActualizada) => {
-  const respuesta = await fetch(`${API_URL}/${id}`, {
+  return await fetchAPI(`/categories/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(categoriaActualizada),
   });
-  return await respuesta.json();
 };
 
 export const remove = async (id) => {
-  const respuesta = await fetch(`${API_URL}/${id}`, {
+  await fetchAPI(`/categories/${id}`, {
     method: "DELETE",
   });
-  return respuesta.ok;
+  return true;
 };
 
 export const getOne = async (id) => {
-  const respuesta = await fetch(`${API_URL}/${id}`);
-  return await respuesta.json();
+  return await fetchAPI(`/categories/${id}`);
 };

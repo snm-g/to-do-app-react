@@ -32,17 +32,13 @@ function Task() {
 
   useEffect(() => {
     const cargarTodo = async () => {
-      try {
-        const tareasData = await getAllTasks();
-        const categoriasData = await getAllCategories();
-        const etiquetasData = await getAllTags();
+      const tareasData = await getAllTasks();
+      const categoriasData = await getAllCategories();
+      const etiquetasData = await getAllTags();
 
-        setTareas(tareasData.data ? tareasData.data : tareasData);
-        setCategoriasLista(categoriasData.data ? categoriasData.data : categoriasData);
-        setEtiquetasLista(etiquetasData.data ? etiquetasData.data : etiquetasData);
-      } catch (error) {
-        console.error("Error al cargar los datos iniciales:", error);
-      }
+      setTareas(tareasData?.data || tareasData || []);
+      setCategoriasLista(categoriasData?.data || categoriasData || []);
+      setEtiquetasLista(etiquetasData?.data || etiquetasData || []);
     };
     cargarTodo();
   }, []);
