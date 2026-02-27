@@ -3,6 +3,11 @@
   width: 100%;
   padding: 20px 0;
   box-sizing: border-box;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 .title-div h1 {
   margin: 0;
@@ -14,7 +19,7 @@
 
 .navigation-div {
   width: 100%;
-  background-color: #5a5c68; /* Era amarillo oscuro */
+  background-color: #5a5c68;
 }
 .navigation-div ul {
   display: flex;
