@@ -1,0 +1,52 @@
+.table-div {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.table-div table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-div thead tr {
+  background-color: #ffc107;
+  text-align: left;
+  color: black;
+  font-family: sans-serif;
+}
+.table-div th {
+  padding: 15px;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+.table-div td {
+  padding: 15px;
+  border-bottom: 1px solid #4b4d55;
+  font-family: sans-serif;
+}
+
+.button-edit {
+  background-color: #f59e0b;
+}
+.button-edit:hover {
+  background-color: #d97706;
+}
+.button-delete {
+  background-color: #ef4444;
+}
+.button-delete:hover {
+  background-color: #dc2626;
+}
+.button-edit,
+.button-delete {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+  display: inline-block;
+}

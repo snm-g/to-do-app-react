@@ -9,10 +9,6 @@ export const create = async (nuevaCategoria) => {
 
 };
 
-export const update = async (id, categoriaActualizada) => {
+export const update = async (id, categoriaActualizada) => {};
 
-};
-
-export const remove = async (id) => {
-
-};
+export const remove = async (id) => {};

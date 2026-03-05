@@ -5,14 +5,8 @@ export const getAll = async () => {
   return await respuesta.json();
 };
 
-export const create = async (nuevaTarea) => {
+export const create = async (nuevaTarea) => {};
 
-};
+export const update = async (id, tareaActualizada) => {};
 
-export const update = async (id, tareaActualizada) => {
-
-};
-
-export const remove = async (id) => {
-
-};
+export const remove = async (id) => {};
