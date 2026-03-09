@@ -26,5 +26,6 @@ export const remove = async (id) => {
 };
 
 export const getOne = async (id) => {
-  return await fetchAPI(`/tags/${id}`);
+  const respuesta = await fetchAPI(`/tags/${id}`);
+  return respuesta.data ? respuesta.data : respuesta;
 };

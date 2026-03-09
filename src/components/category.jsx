@@ -3,6 +3,7 @@ import { getAll, create, update, remove, getOne } from "../services/category.ser
 import AddButton from "../components/addButton";
 import TableCategoryTag from "../components/tableCategoryTag";
 import Modal from "../components/modal";
+
 function Category() {
   const texto = "categoría";
 
@@ -15,13 +16,14 @@ function Category() {
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
 
+  const [modoEliminar, setModoEliminar] = useState(false);
+  const [idAEliminar, setIdAEliminar] = useState(null);
+
   // EFECTOS
   useEffect(() => {
     const cargarCategorias = async () => {
       const datos = await getAll(paginaActual);
-
       setCategorias(datos?.data || datos || []);
-
       if (datos?.last_page) setTotalPaginas(datos.last_page);
     };
     cargarCategorias();
@@ -31,24 +33,45 @@ function Category() {
     setCategoriaEditando(null);
     setNombre("");
     setIsReadOnly(false);
+    setModoEliminar(false);
     setIsModalOpen(true);
   };
+
   const abrirModalEditar = (categoriaSeleccionada) => {
     setCategoriaEditando(categoriaSeleccionada);
     setNombre(categoriaSeleccionada.name);
     setIsReadOnly(false);
+    setModoEliminar(false);
     setIsModalOpen(true);
   };
+
   const abrirModalVer = async (categoriaSeleccionada) => {
     try {
       const respuesta = await getOne(categoriaSeleccionada.id);
-      const categoriaDetalle = respuesta.data ? respuesta.data : respuesta;
-      setCategoriaEditando(categoriaDetalle);
-      setNombre(categoriaDetalle.name);
+      setCategoriaEditando(respuesta);
+      setNombre(respuesta.name);
       setIsReadOnly(true);
+      setModoEliminar(false);
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error al traer el detalle de la categoría:", error);
+    }
+  };
+
+  const abrirModalEliminar = (id) => {
+    setIdAEliminar(id);
+    setModoEliminar(true);
+    setIsModalOpen(true);
+  };
+
+  const confirmarEliminacion = async () => {
+    try {
+      await remove(idAEliminar);
+      const categoriasRestantes = categorias.filter((cat) => cat.id !== idAEliminar);
+      setCategorias(categoriasRestantes);
+      cerrarModal();
+    } catch (error) {
+      console.error("Error al eliminar:", error);
     }
   };
 
@@ -65,10 +88,7 @@ function Category() {
         const nuevaCategoria = await create({ name: nombre });
         setCategorias([...categorias, nuevaCategoria.data]);
       }
-
-      setNombre("");
-      setCategoriaEditando(null);
-      setIsModalOpen(false);
+      cerrarModal();
     } catch (error) {
       console.error("Error al guardar/actualizar:", error);
     }
@@ -79,26 +99,17 @@ function Category() {
     setNombre("");
     setCategoriaEditando(null);
     setIsReadOnly(false);
-  };
-
-  const handleEliminar = async (id) => {
-    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta categoría?");
-
-    if (confirmar) {
-      try {
-        await remove(id);
-        const categoriasRestantes = categorias.filter((cat) => cat.id !== id);
-        setCategorias(categoriasRestantes);
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-      }
-    }
+    setModoEliminar(false);
+    setIdAEliminar(null);
   };
 
   let tituloModal = `NUEVA ${texto.toUpperCase()}`;
-  if (categoriaEditando) {
+  if (modoEliminar) {
+    tituloModal = `ELIMINAR ${texto.toUpperCase()}`;
+  } else if (categoriaEditando) {
     tituloModal = isReadOnly ? `VER ${texto.toUpperCase()}` : `EDITAR ${texto.toUpperCase()}`;
   }
+
   return (
     <>
       <AddButton texto={texto} onClick={abrirModalCrear} />
@@ -106,7 +117,7 @@ function Category() {
       <TableCategoryTag
         data={categorias}
         onEdit={abrirModalEditar}
-        onDelete={handleEliminar}
+        onDelete={abrirModalEliminar}
         onView={abrirModalVer}
         paginaActual={paginaActual}
         totalPaginas={totalPaginas}
@@ -114,30 +125,46 @@ function Category() {
       />
 
       <Modal isOpen={isModalOpen} onClose={cerrarModal} texto={tituloModal}>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>NOMBRE</label>
-            <input
-              type="text"
-              name="name"
-              className="form-input"
-              required
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              disabled={isReadOnly}
-            />
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="button-cancel" onClick={cerrarModal}>
-              {isReadOnly ? "Cerrar" : "Cancelar"}
-            </button>
-            {!isReadOnly && (
-              <button type="submit" className="button-save">
-                {categoriaEditando ? "Actualizar" : "Guardar"}
+        {modoEliminar ? (
+          <div>
+            <p style={{ margin: "20px 0", textAlign: "center", fontSize: "1.1rem" }}>
+              ¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer.
+            </p>
+            <div className="modal-footer">
+              <button type="button" className="button-cancel" onClick={cerrarModal}>
+                Cancelar
               </button>
-            )}
+              <button type="button" className="button-save" onClick={confirmarEliminacion}>
+                Sí, Eliminar
+              </button>
+            </div>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>NOMBRE</label>
+              <input
+                type="text"
+                name="name"
+                className="form-input"
+                required
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                disabled={isReadOnly}
+              />
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="button-cancel" onClick={cerrarModal}>
+                {isReadOnly ? "Cerrar" : "Cancelar"}
+              </button>
+              {!isReadOnly && (
+                <button type="submit" className="button-save">
+                  {categoriaEditando ? "Actualizar" : "Guardar"}
+                </button>
+              )}
+            </div>
+          </form>
+        )}
       </Modal>
     </>
   );

@@ -34,6 +34,9 @@ function Task() {
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
 
+  const [modoEliminar, setModoEliminar] = useState(false);
+  const [idAEliminar, setIdAEliminar] = useState(null);
+
   useEffect(() => {
     const cargarTodo = async () => {
       const tareasData = await getAllTasks(paginaActual);
@@ -49,7 +52,8 @@ function Task() {
     cargarTodo();
   }, [paginaActual]);
 
-  const abrirModalCrear = () => {
+  const cerrarModal = () => {
+    setIsModalOpen(false);
     setTareaEditando(null);
     setTitulo("");
     setDescripcion("");
@@ -57,6 +61,12 @@ function Task() {
     setEtiquetasSeleccionadas([]);
     setIsCompleted(false);
     setIsReadOnly(false);
+    setModoEliminar(false);
+    setIdAEliminar(null);
+  };
+
+  const abrirModalCrear = () => {
+    cerrarModal();
     setIsModalOpen(true);
   };
 
@@ -64,42 +74,46 @@ function Task() {
     setTareaEditando(tarea);
     setTitulo(tarea.title);
     setDescripcion(tarea.description || "");
-    setCategoriaId(tarea.category_id);
+    setCategoriaId(tarea.category_id ?? tarea.category?.id ?? "");
     setEtiquetasSeleccionadas(tarea.tags ? tarea.tags.map((t) => t.id) : []);
     setIsCompleted(tarea.is_completed === 1 || tarea.is_completed === true);
     setIsReadOnly(false);
+    setModoEliminar(false);
     setIsModalOpen(true);
   };
 
   const abrirModalVer = async (tareaSeleccionada) => {
     try {
       const respuesta = await getTask(tareaSeleccionada.id);
-      const tareaDetalle = respuesta.data ? respuesta.data : respuesta;
 
-      setTareaEditando(tareaDetalle);
-      setTitulo(tareaDetalle.title);
-      setDescripcion(tareaDetalle.description || "");
-      setCategoriaId(tareaDetalle.category_id);
-      setEtiquetasSeleccionadas(tareaDetalle.tags ? tareaDetalle.tags.map((t) => t.id) : []);
-      setIsCompleted(tareaDetalle.is_completed === 1 || tareaDetalle.is_completed === true);
+      setTareaEditando(respuesta);
+      setTitulo(respuesta.title);
+      setDescripcion(respuesta.description || "");
+      setCategoriaId(respuesta.category_id ?? respuesta.category?.id ?? "");
+      setEtiquetasSeleccionadas(respuesta.tags ? respuesta.tags.map((t) => t.id) : []);
+      setIsCompleted(respuesta.is_completed === 1 || respuesta.is_completed === true);
 
       setIsReadOnly(true);
+      setModoEliminar(false);
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error al traer el detalle de la tarea:", error);
     }
   };
 
-  const handleEliminar = async (id) => {
-    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta tarea?");
-    if (confirmar) {
-      try {
-        await removeTask(id);
+  const abrirModalEliminar = (id) => {
+    setIdAEliminar(id);
+    setModoEliminar(true);
+    setIsModalOpen(true);
+  };
 
-        setTareas(tareas.filter((t) => t.id !== id));
-      } catch (error) {
-        console.error("Error al eliminar la tarea:", error);
-      }
+  const confirmarEliminacion = async () => {
+    try {
+      await removeTask(idAEliminar);
+      setTareas(tareas.filter((t) => t.id !== idAEliminar));
+      cerrarModal();
+    } catch (error) {
+      console.error("Error al eliminar la tarea:", error);
     }
   };
 
@@ -135,14 +149,16 @@ function Task() {
         setTareas([...tareas, tareaInsertar]);
       }
 
-      setIsModalOpen(false);
+      cerrarModal();
     } catch (error) {
       console.error("Error al guardar la tarea:", error);
     }
   };
 
   let tituloModal = `NUEVA ${texto.toUpperCase()}`;
-  if (tareaEditando) {
+  if (modoEliminar) {
+    tituloModal = `ELIMINAR ${texto.toUpperCase()}`;
+  } else if (tareaEditando) {
     tituloModal = isReadOnly ? `VER ${texto.toUpperCase()}` : `EDITAR ${texto.toUpperCase()}`;
   }
 
@@ -187,7 +203,7 @@ function Task() {
                   <button className="button-edit" onClick={() => abrirModalEditar(item)}>
                     Editar
                   </button>
-                  <button className="button-delete" onClick={() => handleEliminar(item.id)}>
+                  <button className="button-delete" onClick={() => abrirModalEliminar(item.id)}>
                     Eliminar
                   </button>
                 </td>
@@ -198,112 +214,128 @@ function Task() {
         <Paginacion paginaActual={paginaActual} totalPaginas={totalPaginas} cambiarPagina={setPaginaActual} />
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} texto={tituloModal}>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>TÍTULO *</label>
-            <input
-              type="text"
-              className="form-input"
-              required
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-              disabled={isReadOnly}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>DESCRIPCIÓN</label>
-            <textarea
-              className="form-input"
-              rows="3"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              disabled={isReadOnly}
-            ></textarea>
-          </div>
-
-          <div className="form-group">
-            <label>CATEGORÍA *</label>
-            <select
-              className="form-input"
-              required
-              value={categoriaId}
-              onChange={(e) => setCategoriaId(e.target.value)}
-              disabled={isReadOnly}
-            >
-              <option value="">Seleccione una categoría...</option>
-              {categoriasLista.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>ETIQUETAS</label>
-            {!isReadOnly && (
-              <select className="form-input" onChange={handleAgregarEtiqueta} value="">
-                <option value="" disabled>
-                  Seleccione una etiqueta para agregar...
-                </option>
-                {etiquetasLista
-                  .filter((tag) => !etiquetasSeleccionadas.includes(tag.id))
-                  .map((tag) => (
-                    <option key={tag.id} value={tag.id}>
-                      {tag.name}
-                    </option>
-                  ))}
-              </select>
-            )}
-
-            <div className="tags-container">
-              {etiquetasSeleccionadas.length === 0 && (
-                <span className="no-tags-selected">Ninguna etiqueta seleccionada.</span>
-              )}
-              {etiquetasSeleccionadas.map((tagId) => {
-                const tagCompleta = etiquetasLista.find((t) => t.id === tagId);
-                if (!tagCompleta) return null;
-
-                return (
-                  <span key={tagId} className="tag-badge">
-                    {tagCompleta.name}
-                    {!isReadOnly && (
-                      <button type="button" onClick={() => handleQuitarEtiqueta(tagId)} className="tag-remove-button">
-                        &times;
-                      </button>
-                    )}
-                  </span>
-                );
-              })}
+      <Modal isOpen={isModalOpen} onClose={cerrarModal} texto={tituloModal}>
+        {modoEliminar ? (
+          <div>
+            <p style={{ margin: "20px 0", textAlign: "center", fontSize: "1.1rem" }}>
+              ¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.
+            </p>
+            <div className="modal-footer">
+              <button type="button" className="button-cancel" onClick={cerrarModal}>
+                Cancelar
+              </button>
+              <button type="button" className="button-save" onClick={confirmarEliminacion}>
+                Sí, Eliminar
+              </button>
             </div>
           </div>
-
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>TÍTULO *</label>
               <input
-                type="checkbox"
-                checked={isCompleted}
-                onChange={(e) => setIsCompleted(e.target.checked)}
-                className="checkbox-input"
+                type="text"
+                className="form-input"
+                required
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
                 disabled={isReadOnly}
               />
-              Marcar como Completada
-            </label>
-          </div>
+            </div>
 
-          <div className="modal-footer">
-            <button type="button" className="button-cancel" onClick={() => setIsModalOpen(false)}>
-              {isReadOnly ? "Cerrar" : "Cancelar"}
-            </button>
-            {!isReadOnly && (
-              <button type="submit" className="button-save">
-                {tareaEditando ? "Actualizar" : "Guardar"}
+            <div className="form-group">
+              <label>DESCRIPCIÓN</label>
+              <textarea
+                className="form-input"
+                rows="3"
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                disabled={isReadOnly}
+              ></textarea>
+            </div>
+
+            <div className="form-group">
+              <label>CATEGORÍA *</label>
+              <select
+                className="form-input"
+                required
+                value={categoriaId}
+                onChange={(e) => setCategoriaId(e.target.value)}
+                disabled={isReadOnly}
+              >
+                <option value="">Seleccione una categoría...</option>
+                {categoriasLista.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>ETIQUETAS</label>
+              {!isReadOnly && (
+                <select className="form-input" onChange={handleAgregarEtiqueta} value="">
+                  <option value="" disabled>
+                    Seleccione una etiqueta para agregar...
+                  </option>
+                  {etiquetasLista
+                    .filter((tag) => !etiquetasSeleccionadas.includes(tag.id))
+                    .map((tag) => (
+                      <option key={tag.id} value={tag.id}>
+                        {tag.name}
+                      </option>
+                    ))}
+                </select>
+              )}
+
+              <div className="tags-container">
+                {etiquetasSeleccionadas.length === 0 && (
+                  <span className="no-tags-selected">Ninguna etiqueta seleccionada.</span>
+                )}
+                {etiquetasSeleccionadas.map((tagId) => {
+                  const tagCompleta = etiquetasLista.find((t) => t.id === tagId);
+                  if (!tagCompleta) return null;
+
+                  return (
+                    <span key={tagId} className="tag-badge">
+                      {tagCompleta.name}
+                      {!isReadOnly && (
+                        <button type="button" onClick={() => handleQuitarEtiqueta(tagId)} className="tag-remove-button">
+                          &times;
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={isCompleted}
+                  onChange={(e) => setIsCompleted(e.target.checked)}
+                  className="checkbox-input"
+                  disabled={isReadOnly}
+                />
+                Marcar como Completada
+              </label>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="button-cancel" onClick={cerrarModal}>
+                {isReadOnly ? "Cerrar" : "Cancelar"}
               </button>
-            )}
-          </div>
-        </form>
+              {!isReadOnly && (
+                <button type="submit" className="button-save">
+                  {tareaEditando ? "Actualizar" : "Guardar"}
+                </button>
+              )}
+            </div>
+          </form>
+        )}
       </Modal>
     </>
   );

@@ -22,6 +22,7 @@ export const fetchAPI = async (endpoint, options = {}) => {
 
   if (response.status === 401) {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     window.location.href = "/login";
     throw new Error("Sesión expirada");
   }

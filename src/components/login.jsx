@@ -14,22 +14,9 @@ function Login() {
     setError("");
 
     try {
-      // 1. Intentamos iniciar sesión
-      const data = await login(email, password);
-
-      // 🎤 MICRÓFONO: Vamos a ver qué nos mandó Laravel
-      console.log("Respuesta del Login:", data);
-
-      // 2. Guardamos el token de forma segura
-      // (Si tu token se llama diferente, aquí lo descubriremos)
-      const tokenRecibido = data.token || data.access_token || data;
-
-      localStorage.setItem("token", tokenRecibido);
-
-      // 3. Te vas a tu página de inicio como querías
+      await login(email, password);
       navigate("/");
     } catch (err) {
-      // Si falla la contraseña o el servidor, mostramos el error en rojo en tu pantalla
       setError("Credenciales incorrectas o error de conexión.");
       console.error("Falló el login:", err);
     }

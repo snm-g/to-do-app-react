@@ -13,5 +13,12 @@ export const login = async (email, password) => {
   if (!respuesta.ok) {
     throw new Error("Correo o contraseña incorrectos");
   }
-  return await respuesta.json();
+
+  const data = await respuesta.json();
+  const tokenRecibido = data.token || data.access_token || data;
+  if (tokenRecibido) {
+    localStorage.setItem("token", tokenRecibido);
+  }
+
+  return data;
 };
