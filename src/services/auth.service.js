@@ -1,7 +1,7 @@
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "http://localhost:3000/api";
 
 export const login = async (email, password) => {
-  const respuesta = await fetch(`${API_URL}/login`, {
+  const respuesta = await fetch(`${API_URL}/users/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

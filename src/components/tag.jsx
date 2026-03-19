@@ -70,11 +70,11 @@ function Tag() {
     try {
       if (etiquetaEditando) {
         const respuesta = await update(etiquetaEditando.id, { name: nombre });
-        const etiquetasActualizadas = etiquetas.map((tag) => (tag.id === etiquetaEditando.id ? respuesta.data : tag));
+        const etiquetasActualizadas = etiquetas.map((tag) => (tag.id === etiquetaEditando.id ? respuesta : tag));
         setEtiquetas(etiquetasActualizadas);
       } else {
         const nuevaEtiqueta = await create({ name: nombre });
-        setEtiquetas([...etiquetas, nuevaEtiqueta.data]);
+        setEtiquetas([...etiquetas, nuevaEtiqueta]);
       }
       cerrarModal();
     } catch (error) {

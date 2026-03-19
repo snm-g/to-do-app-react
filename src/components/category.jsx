@@ -79,14 +79,14 @@ function Category() {
     e.preventDefault();
     try {
       if (categoriaEditando) {
+        // ACTUALIZAR (Quitamos el .data)
         const respuesta = await update(categoriaEditando.id, { name: nombre });
-        const categoriasActualizadas = categorias.map((cat) =>
-          cat.id === categoriaEditando.id ? respuesta.data : cat,
-        );
+        const categoriasActualizadas = categorias.map((cat) => (cat.id === categoriaEditando.id ? respuesta : cat));
         setCategorias(categoriasActualizadas);
       } else {
+        // CREAR (Quitamos el .data)
         const nuevaCategoria = await create({ name: nombre });
-        setCategorias([...categorias, nuevaCategoria.data]);
+        setCategorias([...categorias, nuevaCategoria]);
       }
       cerrarModal();
     } catch (error) {

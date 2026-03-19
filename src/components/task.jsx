@@ -118,7 +118,8 @@ function Task() {
   };
 
   const handleAgregarEtiqueta = (e) => {
-    const id = parseInt(e.target.value);
+    const id = e.target.value;
+
     if (id && !etiquetasSeleccionadas.includes(id)) {
       setEtiquetasSeleccionadas([...etiquetasSeleccionadas, id]);
     }
@@ -131,11 +132,17 @@ function Task() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const categoriaFinal = !categoriaId || categoriaId === "" ? null : categoriaId;
+
+      const etiquetasLimpias = etiquetasSeleccionadas.filter(
+        (id) => id !== null && id !== undefined && id !== "" && !Number.isNaN(id),
+      );
+
       const payload = {
         title: titulo,
         description: descripcion,
-        category_id: categoriaId,
-        tags: etiquetasSeleccionadas,
+        category_id: categoriaFinal,
+        tags: etiquetasLimpias,
         is_completed: isCompleted ? 1 : 0,
       };
 

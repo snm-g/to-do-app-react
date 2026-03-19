@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000/api";
+const BASE_URL = "http://localhost:3000/api";
 
 export const fetchAPI = async (endpoint, options = {}) => {
   const token = localStorage.getItem("token");
@@ -27,9 +27,22 @@ export const fetchAPI = async (endpoint, options = {}) => {
     throw new Error("Sesión expirada");
   }
 
+  // ==========================================
+  // LA MAGIA: Leer el error real del backend
+  // ==========================================
   if (!response.ok) {
-    throw new Error(`Error del servidor: ${response.status}`);
+    let mensajeError = `Error del servidor: ${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) {
+        mensajeError = errorData.error; // Atrapamos el error que mandó Node.js
+      }
+    } catch (e) {
+      // Si la respuesta no era un JSON, nos quedamos con el error genérico
+    }
+    throw new Error(mensajeError);
   }
+  // ==========================================
 
   if (response.status === 204) {
     return null;
